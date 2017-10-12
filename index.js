@@ -33,26 +33,18 @@ var client = new pg.Client({
 });
 db = client.connect();*/
 
-console.log("env: " + process.env);
-console.log("database  url: " + process.env.DATABASE_URL);
-
 const { Client } = require('pg');
 const dbClient = new Client({
-  connectionString: process.env.DATABASE_URL,
-  ssl: true,
+  //connectionString: process.env.DATABASE_URL,
+  user: "mrlvznufwtxadb",
+  password: "53508401758b022cfb0417c523d470d26bf2ef46e7ad2f57f072133e136514cd",
+  database: "dc5rsgnuighnqr",
+  port: 5432,
+  host: "ec2-50-17-203-195.compute-1.amazonaws.com",
+  ssl: true
 });
 
 dbClient.connect();
-// https://stackoverflow.com/questions/11700602/how-can-i-attach-a-database-to-an-app-in-heroku
-
-
-/*client.query('SELECT table_schema,table_name FROM information_schema.tables;', (err, res) => {
-  if (err) throw err;
-  for (let row of res.rows) {
-    console.log(JSON.stringify(row));
-  }
-  client.end();
-});*/
 
 // post request
 const bodyParser = require("body-parser");
@@ -62,7 +54,7 @@ app.use(bodyParser.urlencoded({
 
 // routing
 const modulesDir = "./modules"
-require(modulesDir + "/routes")(express, app, path, bcrypt);
+require(modulesDir + "/routes")(express, app, path, bcrypt, dbClient);
 
 
 // OTHER MODULES
