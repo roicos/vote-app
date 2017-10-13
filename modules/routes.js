@@ -32,8 +32,6 @@ module.exports = function (express, app, path, bcrypt, dbClient) {
 						if (err){
 							console.log("Error insert user: " + err);
 						} else {
-							console.log("user was registered: username: " + userName +", pass:" + req.body.password);
-                        	console.log(res)
                         	res.render("registration", {"status" : 1, "message" : "Thank you for registration!"});
                         }
 					});
@@ -48,26 +46,36 @@ module.exports = function (express, app, path, bcrypt, dbClient) {
 
    	app.post("/login", function (req, res, next) {
 
-   		//var userNameFromDB = "User";
-   		//var hashFromDB = "passwordHashByBcrypr";
 // Petya: password
 // Vasya: secret
+
+// Mumu
+// pass
 
    		var userName = req.body.username ? req.body.username : "";
    		var password = req.body.password ? req.body.password : "";
 
-		if(login === userName){
-			bcrypt.compare(password, hash, function(err, result) {
-				if(result) {
-					req.session.authenticated = true;
-					res.redirect("/");
+   		dbClient.query("select id, password from users where username = '" + userName + "'", (err, result) => {
+			if (err){
+				console.log("Error find user: " + err);
+				res.render("login", {"errorMessage" : "Username is not found."});
+			} else {
+				if(result.rows.length == 1){
+					var hash = result.rows[0]["password"];
+					bcrypt.compare(password, hash, function(err, resultComparePass) {
+						if(resultComparePass) {
+							req.session.userId = result.rows[0]["id"];
+							req.session.authenticated = true;
+							res.redirect("/");
+						} else {
+							res.render("login", {"errorMessage" : "Password is incorrect."});
+						}
+					});
 				} else {
-					res.render("login", {"errorMessage" : "Password is incorrect."});
+					res.render("login", {"errorMessage" : "Username is incorrect"});
 				}
-			});
-		} else {
-			res.render("login", {"errorMessage" : "Username is incorrect."});
-		}
+			}
+		});
     });
 
     app.get("/logout", function (req, res, next) {
@@ -92,21 +100,24 @@ module.exports = function (express, app, path, bcrypt, dbClient) {
     });
 
     app.get("/poll/create", checkAuth, function (req, res, next) {
-    		// process create poll
-    		// can create list of options
         res.render("edit", {"pollId" : null});
     });
 
 	app.get("/poll/edit/:poll([0-9])", checkAuth, function (req, res, next) {
-	console.log(111);
+		console.log(111);
 		var id = req.params.poll;
         res.render("edit", {"pollId" : id});
     });
 
 	app.post("/poll/edit/:poll([0-9])", checkAuth, function (req, res, next) {
+
 		var id = req.params.poll;
-		// process edit poll
-		// can edit list of options
+		console.log(id);
+		var user = req.session.userId;
+		console.log(user);
+		var question = req.body.question;
+		// process create poll with list of options in id == null
+		// or process edit poll with list of options
 	});
 
 	app.post("/poll/delete/:poll([0-9])", checkAuth, function (req, res, next) {

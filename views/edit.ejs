@@ -1,1 +1,21 @@
-<p>Create new poll or edit existing poll here</p>
+<% include partial/header %>
+
+<form method="post" action="/poll/edit/">
+    <label>Question: </label>
+    <textarea name="question" rows="4" cols="50"></textarea>
+    <ul>Options:
+        <li><input type="text" name="option-1" id="option-1" /></li>
+        <li><input type="text" name="option-2" id="option-2" /></li>
+    </ul>
+    <button onclick="addOptionField">Add option</button>
+    <input type="submit" value="submit"/>
+</form>
+<script>
+    function addOptionField(){
+        console.log("addNewOption");
+        // found elements, count them
+        // create new element with incrementing counter
+        // append into html
+    }
+</script>
+<% include partial/footer %>
