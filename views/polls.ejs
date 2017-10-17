@@ -1,1 +1,10 @@
 <p>My polls</p>
+<p><%= message %></p>
+
+<ul>
+<% for(var i=0; i<polls.length; i++) {%>
+<li><%= polls[i].id %>, <%= polls[i].question %>, <%= polls[i].status %></li>
+<% } %>
+</ul>
+
+<a href="/poll/create">Create new</a>

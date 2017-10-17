@@ -1,9 +1,11 @@
+// TODO: make all the data safe before insert or update
+
 module.exports = function (express, app, path, bcrypt, dbClient) {
 
 	app.use(express.static(path.join(__dirname, "public")));
 
 	function checkAuth(req, res, next){
-		var privatePages = ["/", "/polls/", "/poll/create/", "/poll/edit/", "/poll/delete/", "/option/create/"];
+		var privatePages = [/*"/",*/ "/polls/", "/poll/create/", "/poll/edit/", "/poll/delete/", "/option/create/"];
 		if ((privatePages.indexOf(req.url) > -1 || privatePages.indexOf(req.url+"/") > -1 )&& (!req.session || !req.session.authenticated)) {
 			res.redirect("/login");
 		} else {
@@ -11,8 +13,17 @@ module.exports = function (express, app, path, bcrypt, dbClient) {
 		}
 	}
 
-	app.get("/", checkAuth, function (req, res, next) {
-    		res.render("index");
+	app.use(function(req, res, next) {
+      res.locals.user = req.session.user;
+      next();
+    });
+
+	app.get("/", /*checkAuth,*/ function (req, res, next) {
+		var user;
+		if(req.session.authenticated){
+			user = req.session.user;
+		}
+    	res.render("index", {"user" : user});
     });
 
     app.get("/registration", function (req, res, next) {
@@ -46,12 +57,6 @@ module.exports = function (express, app, path, bcrypt, dbClient) {
 
    	app.post("/login", function (req, res, next) {
 
-// Petya: password
-// Vasya: secret
-
-// Mumu
-// pass
-
    		var userName = req.body.username ? req.body.username : "";
    		var password = req.body.password ? req.body.password : "";
 
@@ -64,7 +69,7 @@ module.exports = function (express, app, path, bcrypt, dbClient) {
 					var hash = result.rows[0]["password"];
 					bcrypt.compare(password, hash, function(err, resultComparePass) {
 						if(resultComparePass) {
-							req.session.userId = result.rows[0]["id"];
+							req.session.user = result.rows[0]["id"];
 							req.session.authenticated = true;
 							res.redirect("/");
 						} else {
@@ -91,7 +96,18 @@ module.exports = function (express, app, path, bcrypt, dbClient) {
     });
 
     app.get("/polls", checkAuth, function (req, res, next) { // My polls
-		res.render("polls", {});
+    	var userId = req.session.user;
+    	var polls = [];
+    	dbClient.query("select * from polls where userid = " + userId, (err, result) => {
+			if (err){
+				console.log("Error find polls for current user: " + err);
+			} else {
+				polls = result.rows;
+				console.log(polls);
+				res.render("polls", {"message" : "Here are the polls you created:", "polls" : result.rows});
+			}
+		});
+		res.render("polls", {"message" : "Here are the polls you created:", "polls" : polls});
     });
 
     app.get("/poll/:id([0-9])", function (req, res, next) {
@@ -104,20 +120,61 @@ module.exports = function (express, app, path, bcrypt, dbClient) {
     });
 
 	app.get("/poll/edit/:poll([0-9])", checkAuth, function (req, res, next) {
-		console.log(111);
 		var id = req.params.poll;
         res.render("edit", {"pollId" : id});
     });
 
-	app.post("/poll/edit/:poll([0-9])", checkAuth, function (req, res, next) {
-
-		var id = req.params.poll;
-		console.log(id);
-		var user = req.session.userId;
-		console.log(user);
+	app.post("/poll/edit", checkAuth, function (req, res, next) {
+		var poll = req.body.poll;
+		var userId = req.session.user;
 		var question = req.body.question;
-		// process create poll with list of options in id == null
-		// or process edit poll with list of options
+		var options = [];
+
+		if(poll == undefined){ // create
+			for(field in req.body){
+				if(field.match(/option-new-[0-9]/)){
+					options.push(req.body[field]);
+				}
+			}
+			// TODO: make transaction
+			dbClient.query("create table if not exists polls(id serial primary key, userid int not null, question text not null, status boolean default false, published timestamp)", (errCrPolls, resultCrPolls) => {
+				if (errCrPolls){
+					console.log("Error create table polls: " + errCrPolls);
+				} else {
+					dbClient.query("create table if not exists options(id serial primary key, pollid int not null, text varchar(255), vote int default 0)", (errCrOptions, resultCrOptions) => {
+						if (errCrOptions){
+							console.log("Error create table options: " + errCrOptions);
+						} else {
+							// insert poll
+							dbClient.query("insert into polls (\"userid\", \"question\") values ("+ userId +", '"+ question +"') returning id", (errInsertPoll, resultInsertPoll) => {
+								if (errInsertPoll){
+									console.log("Error insert poll: " + errInsertPoll);
+								} else {
+									var pollId = resultInsertPoll.rows[0].id;
+									// insert options
+									for(var i=0; i<options.length; i++){
+										dbClient.query("insert into options (\"pollid\", \"text\") values ("+ pollId +", '"+ options[i] +"') returning id", (errInsertOptions, resultInsertOption) => {
+											if (errInsertOptions){
+												console.log("Error insert option: " + errInsertOptions);
+											} else {
+												res.redirect("/polls");
+											}
+										});
+									}
+								}
+							});
+						}
+					});
+				}
+			});
+		} else { // update
+
+		}
+
+
+		// id, user, question, status (published are not for editing), date_created
+		// id, poll, text, vote
+
 	});
 
 	app.post("/poll/delete/:poll([0-9])", checkAuth, function (req, res, next) {
