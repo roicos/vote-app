@@ -1,10 +1,14 @@
-<p>My polls</p>
-<p><%= message %></p>
+<% include partial/header %>
+    <p>My polls</p>
+    <p><%= message %></p>
 
-<ul>
-<% for(var i=0; i<polls.length; i++) {%>
-<li><%= polls[i].id %>, <%= polls[i].question %>, <%= polls[i].status %></li>
-<% } %>
-</ul>
+    <table>
+    <% for(var i=0; i<polls.length; i++) {%>
+    <tr><td><a href='poll/<%= polls[i].id %>'><%= polls[i].id %></a></td>
+        <td><a href='poll/<%= polls[i].id %>'><%= polls[i].question %></a></td>
+        <td> <%= (polls[i].status ? "published" : "not published") %></td></tr>
+    <% } %>
+    </table>
 
-<a href="/poll/create">Create new</a>
+    <a href="/poll/create">Create new</a>
+<% include partial/footer %>

@@ -2,11 +2,12 @@
 <html lang="en">
 <head>
     <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
-    <link rel="stylesheet" type="text/css" href="css/main.css">
+    <link rel="stylesheet" type="text/css" href="/css/main.css">
 </head>
 <body class="container">
 <div class="header">
     Header
+    <a href="/">Main page</a>
     <%if (locals.user != undefined) { %>
         <a href="/logout">logout here</a>
         <a href="/polls">Your polls</a>

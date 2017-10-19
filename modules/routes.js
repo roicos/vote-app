@@ -5,6 +5,7 @@ module.exports = function (express, app, path, bcrypt, dbClient) {
 	app.use(express.static(path.join(__dirname, "public")));
 
 	function checkAuth(req, res, next){
+		//console.log(req.url);
 		var privatePages = [/*"/",*/ "/polls/", "/poll/create/", "/poll/edit/", "/poll/delete/", "/option/create/"];
 		if ((privatePages.indexOf(req.url) > -1 || privatePages.indexOf(req.url+"/") > -1 )&& (!req.session || !req.session.authenticated)) {
 			res.redirect("/login");
@@ -23,7 +24,18 @@ module.exports = function (express, app, path, bcrypt, dbClient) {
 		if(req.session.authenticated){
 			user = req.session.user;
 		}
-    	res.render("index", {"user" : user});
+		var userId = req.session.user;
+
+		// TODO: pagination
+		var polls = [];
+		dbClient.query("select * from polls limit 20", (err, result) => { // TODO: published only
+			if (err){
+				console.log("Error find polls: " + err);
+			} else {
+				polls = result.rows;
+				res.render("index", {"user" : user, "polls" : polls});
+			}
+		});
     });
 
     app.get("/registration", function (req, res, next) {
@@ -59,7 +71,6 @@ module.exports = function (express, app, path, bcrypt, dbClient) {
 
    		var userName = req.body.username ? req.body.username : "";
    		var password = req.body.password ? req.body.password : "";
-
    		dbClient.query("select id, password from users where username = '" + userName + "'", (err, result) => {
 			if (err){
 				console.log("Error find user: " + err);
@@ -103,16 +114,32 @@ module.exports = function (express, app, path, bcrypt, dbClient) {
 				console.log("Error find polls for current user: " + err);
 			} else {
 				polls = result.rows;
-				console.log(polls);
 				res.render("polls", {"message" : "Here are the polls you created:", "polls" : result.rows});
 			}
 		});
-		res.render("polls", {"message" : "Here are the polls you created:", "polls" : polls});
     });
 
-    app.get("/poll/:id([0-9])", function (req, res, next) {
-    	var id = req.params.id;
-    	res.render("poll", {"id" : id});
+    app.get("/poll/:poll([0-9]+)", function (req, res, next) {
+    	var id = req.params.poll;
+    	dbClient.query("select * from polls left join options on polls.id = options.pollId where polls.id = " + id, (err, result) => {
+			if (err){
+				console.log("Error find poll: " + err);
+			} else {
+				var poll = {};
+				poll.id = id;
+				poll.question = result.rows[0].question;
+				poll.user = result.rows[0].userid;
+				poll.status = result.rows[0].status;
+				poll.published = result.rows[0].published;
+				poll.options = [];
+				for(var i=0; i<result.rows.length; i++){
+					var option = result.rows[i];
+					poll.options.push({"id" : option.id, "text" : option.text, "vote" : option.vote});
+				}
+				//console.log(poll);
+				res.render("poll", {"poll" : poll});
+			}
+		});
     });
 
     app.get("/poll/create", checkAuth, function (req, res, next) {
@@ -120,6 +147,7 @@ module.exports = function (express, app, path, bcrypt, dbClient) {
     });
 
 	app.get("/poll/edit/:poll([0-9])", checkAuth, function (req, res, next) {
+		// TODO: checkAuth doesn't work
 		var id = req.params.poll;
         res.render("edit", {"pollId" : id});
     });
@@ -129,10 +157,9 @@ module.exports = function (express, app, path, bcrypt, dbClient) {
 		var userId = req.session.user;
 		var question = req.body.question;
 		var options = [];
-
 		if(poll == undefined){ // create
 			for(field in req.body){
-				if(field.match(/option-new-[0-9]/)){
+				if(field.match(/option-new-[0-9]+/)){
 					options.push(req.body[field]);
 				}
 			}
@@ -152,12 +179,16 @@ module.exports = function (express, app, path, bcrypt, dbClient) {
 								} else {
 									var pollId = resultInsertPoll.rows[0].id;
 									// insert options
+									var counter = 0;
 									for(var i=0; i<options.length; i++){
 										dbClient.query("insert into options (\"pollid\", \"text\") values ("+ pollId +", '"+ options[i] +"') returning id", (errInsertOptions, resultInsertOption) => {
 											if (errInsertOptions){
 												console.log("Error insert option: " + errInsertOptions);
 											} else {
-												res.redirect("/polls");
+												counter++;
+												if(counter == options.length-1){
+													res.redirect("/polls");
+												}
 											}
 										});
 									}
@@ -168,7 +199,7 @@ module.exports = function (express, app, path, bcrypt, dbClient) {
 				}
 			});
 		} else { // update
-
+			// res.redirect("/polls");
 		}
 
 
