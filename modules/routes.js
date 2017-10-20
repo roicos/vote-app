@@ -28,9 +28,11 @@ module.exports = function (express, app, path, bcrypt, dbClient) {
 
 		// TODO: pagination
 		var polls = [];
-		dbClient.query("select * from polls limit 20", (err, result) => { // TODO: published only
+		dbClient.query("select * from polls where status = true order by published desc limit 20", (err, result) => { // TODO: published only
 			if (err){
 				console.log("Error find polls: " + err);
+				// if no polls, you still can see empty list
+				res.render("index", {"user" : user, "polls" : polls});
 			} else {
 				polls = result.rows;
 				res.render("index", {"user" : user, "polls" : polls});
@@ -49,7 +51,6 @@ module.exports = function (express, app, path, bcrypt, dbClient) {
 			} else {
 				var userName = req.body.username;
 				// TODO: check if user exists
-
 				bcrypt.hash(req.body.password, 10, function(err, passHash) {
 					dbClient.query("insert into users (username, password) values ('"+ userName + "', '"+ passHash + "')", (err, result) => {
 						if (err){
@@ -109,9 +110,11 @@ module.exports = function (express, app, path, bcrypt, dbClient) {
     app.get("/polls", checkAuth, function (req, res, next) { // My polls
     	var userId = req.session.user;
     	var polls = [];
-    	dbClient.query("select * from polls where userid = " + userId, (err, result) => {
+    	dbClient.query("select * from polls where userid = " + userId + " order by status desc, id", (err, result) => {
 			if (err){
 				console.log("Error find polls for current user: " + err);
+				// if no polls, you still can see empty list
+                res.render("polls", {"message" : "Here are the polls you created:", "polls" : []});
 			} else {
 				polls = result.rows;
 				res.render("polls", {"message" : "Here are the polls you created:", "polls" : result.rows});
@@ -143,26 +146,46 @@ module.exports = function (express, app, path, bcrypt, dbClient) {
     });
 
     app.get("/poll/create", checkAuth, function (req, res, next) {
-        res.render("edit", {"pollId" : null});
+        res.render("edit", {"poll" : null});
     });
 
 	app.get("/poll/edit/:poll([0-9])", checkAuth, function (req, res, next) {
 		// TODO: checkAuth doesn't work
 		var id = req.params.poll;
-        res.render("edit", {"pollId" : id});
+		dbClient.query("select * from polls left join options on polls.id = options.pollId where polls.id = " + id, (err, result) => {
+			if (err){
+				console.log("Error find poll to edit: " + err);
+			} else {
+				var poll = {};
+				poll.id = id;
+				poll.question = result.rows[0].question;
+				poll.user = result.rows[0].userid;
+				poll.status = result.rows[0].status;
+				poll.published = result.rows[0].published;
+				poll.options = [];
+				for(var i=0; i<result.rows.length; i++){
+					var option = result.rows[i];
+					poll.options.push({"id" : option.id, "text" : option.text, "vote" : option.vote});
+				}
+				res.render("edit", {"poll" : poll});
+			}
+		});
     });
 
-	app.post("/poll/edit", checkAuth, function (req, res, next) {
-		var poll = req.body.poll;
+	app.post("/poll/edit", checkAuth, function (req, res, next) { // TODO: no sense to combine create and edit
+		var pollId = req.body.pollId;
 		var userId = req.session.user;
 		var question = req.body.question;
 		var options = [];
-		if(poll == undefined){ // create
-			for(field in req.body){
-				if(field.match(/option-new-[0-9]+/)){
+		for(field in req.body){
+			if(field.match(/option-[0-9]+/)){
+				if(req.body[field].trim() !=""){
 					options.push(req.body[field]);
 				}
 			}
+		}
+
+		if(pollId == undefined){ // create
 			// TODO: make transaction
 			dbClient.query("create table if not exists polls(id serial primary key, userid int not null, question text not null, status boolean default false, published timestamp)", (errCrPolls, resultCrPolls) => {
 				if (errCrPolls){
@@ -199,17 +222,75 @@ module.exports = function (express, app, path, bcrypt, dbClient) {
 				}
 			});
 		} else { // update
-			// res.redirect("/polls");
+			dbClient.query("update polls set question = '"+ question +"' where id = "+ pollId +" and userid = "+ userId +" and status = false", (errUpdatePoll, resultUpdatePoll) => {
+				if (errUpdatePoll){
+					console.log("Error update poll: " + errUpdatePoll);
+				} else {
+					// delete old options
+					dbClient.query("delete from options where id = (select id from options where pollid = "+ pollId +")", (errDeleteOptions, resultDeleteOption) => {
+						if (errDeleteOptions){
+							console.log("Error delete options: " + errDeleteOptions);
+						} else {
+							// insert new options
+							var counter = 0;
+							for(var i=0; i<options.length; i++){
+								dbClient.query("insert into options (\"pollid\", \"text\") values ("+ pollId +", '"+ options[i] +"')", (errInsertOptions, resultInsertOption) => {
+									if (errInsertOptions){
+										console.log("Error insert options: " + errInsertOptions);
+									} else {
+										counter++;
+										if(counter == options.length-1){
+											res.redirect("/polls");
+										}
+									}
+								});
+							}
+						}
+					});
+				}
+			});
 		}
-
-
-		// id, user, question, status (published are not for editing), date_created
-		// id, poll, text, vote
-
 	});
 
+	app.post("/poll/publish/:poll([0-9])", checkAuth, function (req, res, next) {
+		var id = req.params.poll;
+		var userId = req.session.user;
+    	dbClient.query("update polls set status = true, published = now() where id = " + id + " and userid = " + userId, (err, result) => {
+			if (err){
+				console.log("Error publishing the poll: " + err);
+			} else {
+				res.redirect("/polls");
+			}
+		});
+    });
+
+    app.post("/poll/vote/:poll([0-9])", function (req, res, next) {
+    	var pollId = req.params.poll;
+		var option = req.body.option;
+    	dbClient.query("update options set vote = vote+1 where id = " + option + " and pollid = " + pollId, (err, result) => {
+			if (err){
+				console.log("Error voting the poll: " + err);
+			} else {
+				res.redirect("/poll/"+pollId);
+			}
+		});
+    });
+
 	app.post("/poll/delete/:poll([0-9])", checkAuth, function (req, res, next) {
-		// process delete poll: delete options, delete poll
+		var pollId = req.params.poll;
+		dbClient.query("delete from options where pollid = " + pollId, (errDeleteOptions, resultDeleteOptions) => {
+			if (errDeleteOptions){
+				console.log("Error delete options: " + errDeleteOptions);
+			} else {
+				dbClient.query("delete from polls where id = " + pollId, (errDeletePoll, resultDeletePoll) => {
+					if (errDeletePoll){
+						console.log("Error delete poll: " + errDeletePoll);
+					} else {
+						res.redirect("/polls");
+					}
+				});
+			}
+		});
 	});
 
 	app.post("/option/create/:poll([0-9])", checkAuth, function (req, res, next) {
@@ -220,3 +301,5 @@ module.exports = function (express, app, path, bcrypt, dbClient) {
    		res.status(404).send("Can not find the page");
     });
 }
+
+// TODO: add option -> show results -> static files -> styles and graphs

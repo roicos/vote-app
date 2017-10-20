@@ -1,14 +1,16 @@
 <% include partial/header %>
     <h2>Poll №<%= poll.id %></h2>
-    <%if (locals.user == poll.user) { %>
+    <%if (locals.user == poll.user && !poll.status) { %>
     <a href="/poll/edit/<%= poll.id %>">edit</a>
     <% } %>
 
     <p><%= poll.question%></p>
-    <form>
+    <form action="/poll/vote/<%= poll.id %>" method="post">
     <% for(var i=0; i<poll.options.length; i++) {%>
-        <input type="radio" name="option" value="<%=poll.options[i].id%>"> <%=poll.options[i].text%><br>
+        <input type="radio" name="option" value="<%=poll.options[i].id%>"><%=poll.options[i].text%><br>
     <% } %>
-    <input type="submit" value="Vote"/>
+    <% if (poll.status){ %>
+        <input type="submit" value="Vote"/>
+    <% } %>
     </form>
 <% include partial/footer %>

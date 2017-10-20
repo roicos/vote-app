@@ -1,11 +1,19 @@
 <% include partial/header %>
-
 <form method="post" action="/poll/edit/">
     <label>Question: </label>
-    <textarea name="question" rows="4" cols="50"></textarea>
+    <textarea name="question" rows="4" cols="50"><%=(poll != null ? poll.question : "")%></textarea>
+    <% if (poll != null ){%>
+        <input type="hidden" name="pollId" value="<%=poll.id%>">
+    <%}%>
     <ul id="options">Options:
-        <li><input type="text" name="option-new-1"/></li>
-        <li><input type="text" name="option-new-2"/></li>
+        <% if (poll == null ){%>
+            <li><input type="text" name="option-1"/></li>
+            <li><input type="text" name="option-2"/></li>
+        <%} else {%>
+            <% for(var i=0; i<poll.options.length; i++) {%>
+                <li><input type="text" name="option-<%=i+1%>" value="<%=poll.options[i].text%>"/></li>
+            <% } %>
+        <%}%>
     </ul>
     <button id="addOptionField" onclick="return false;">Add option</button>
     <input type="submit" value="submit"/>
@@ -21,7 +29,7 @@
         var li = document.createElement("li");
         var option = document.createElement("input");
         option.type = "text";
-        option.name = "option-new-"+nextNumber;
+        option.name = "option-"+nextNumber;
         li.appendChild(option);
         list.appendChild(li);
     }

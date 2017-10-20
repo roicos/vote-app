@@ -1,12 +1,22 @@
 <% include partial/header %>
-    <p>My polls</p>
-    <p><%= message %></p>
+    <h2><%= message %></h2>
 
     <table>
     <% for(var i=0; i<polls.length; i++) {%>
     <tr><td><a href='poll/<%= polls[i].id %>'><%= polls[i].id %></a></td>
         <td><a href='poll/<%= polls[i].id %>'><%= polls[i].question %></a></td>
-        <td> <%= (polls[i].status ? "published" : "not published") %></td></tr>
+        <td> <%if (polls[i].status == 0) { %>
+            <form action='poll/publish/<%=polls[i].id%>' method="post">
+                <input type="submit" value="publish"/>
+            </form>
+            <% } %>
+        </td>
+        <td>
+            <form action='poll/delete/<%=polls[i].id%>' method="post">
+                 <input type="submit" value="delete"/>
+            </form>
+        </td>
+    </tr>
     <% } %>
     </table>
 

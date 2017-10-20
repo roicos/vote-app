@@ -35,13 +35,21 @@ db = client.connect();*/
 
 const { Client } = require('pg');
 const dbClient = new Client({
+
   //connectionString: process.env.DATABASE_URL,
-  user: "mrlvznufwtxadb",
+
+  /*user: "mrlvznufwtxadb",
   password: "53508401758b022cfb0417c523d470d26bf2ef46e7ad2f57f072133e136514cd",
   database: "dc5rsgnuighnqr",
   port: 5432,
   host: "ec2-50-17-203-195.compute-1.amazonaws.com",
-  ssl: true
+  ssl: true*/
+
+  user: "postgres",
+  password: "postgres",
+  database: "voteAppDB",
+  port: 5432,
+  host: "localhost"
 });
 
 dbClient.connect();
