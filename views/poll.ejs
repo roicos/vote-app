@@ -1,16 +1,62 @@
 <% include partial/header %>
-    <h2>Poll №<%= poll.id %></h2>
-    <%if (locals.user == poll.user && !poll.status) { %>
-    <a href="/poll/edit/<%= poll.id %>">edit</a>
-    <% } %>
-
+<h2>Poll №<%= poll.id %></h2>
+<%if (locals.user == poll.user && !poll.status) { %>
+<a href="/poll/edit/<%= poll.id %>">edit</a>
+<% } %>
+<div>
     <p><%= poll.question%></p>
-    <form action="/poll/vote/<%= poll.id %>" method="post">
-    <% for(var i=0; i<poll.options.length; i++) {%>
+    <form id="options" action="/poll/vote/<%= poll.id %>" method="post">
+    <% for (var i=0; i<poll.options.length; i++) {%>
         <input type="radio" name="option" value="<%=poll.options[i].id%>"><%=poll.options[i].text%><br>
+    <% } %>
+    <%if(locals.user != undefined){%>
+        <a href="#" id="addOptionField">Your option</a>
+        <script>
+            var addOptionButton = document.getElementById("addOptionField");
+            addOptionButton.addEventListener("click", addOptionField);
+
+            function addOptionField(){
+                var form = document.getElementById("options");
+                var option = document.createElement("input");
+                option.type = "text";
+                option.name = "newOption";
+                console.log(this);
+                form.insertBefore(option, this);
+            }
+        </script>
     <% } %>
     <% if (poll.status){ %>
         <input type="submit" value="Vote"/>
     <% } %>
     </form>
+</div>
+<div>
+    <h2>Result:</h2>
+    <canvas id="result" width="200" height="200"></canvas>
+</div>
+
+
+<%votes = [];%>
+<%labels= [];%>
+<% for (var i=0; i<poll.options.length; i++) {%>
+        <%votes.push(poll.options[i].vote);%>
+        <%labels.push(poll.options[i].text);%>
+<%}%>
+
+<script>
+    var ctx = document.getElementById("result").getContext('2d');
+    var votes = "<%=votes%>";
+    var labels = "<%=labels%>";
+
+    var myPieChart = new Chart(ctx, {
+        type: 'pie',
+        labels: labels.split(","),
+        data: {
+            datasets: [{
+                data: votes.split(","),
+                backgroundColor : ["#8e9eea", "#fed270", "#d2c3cf", "#da7858", "#a3748d"],
+            }]
+        },
+   });
+</script>
 <% include partial/footer %>

@@ -267,13 +267,27 @@ module.exports = function (express, app, path, bcrypt, dbClient) {
     app.post("/poll/vote/:poll([0-9])", function (req, res, next) {
     	var pollId = req.params.poll;
 		var option = req.body.option;
-    	dbClient.query("update options set vote = vote+1 where id = " + option + " and pollid = " + pollId, (err, result) => {
-			if (err){
-				console.log("Error voting the poll: " + err);
-			} else {
-				res.redirect("/poll/"+pollId);
-			}
-		});
+		var newOption = req.body.newOption;
+
+		if(option != undefined){
+			dbClient.query("update options set vote = vote+1 where id = " + option + " and pollid = " + pollId, (err, result) => {
+				if (err){
+					console.log("Error voting the poll: " + err);
+				} else {
+					res.redirect("/poll/"+pollId);
+				}
+			});
+		} else if(newOption != undefined){
+			dbClient.query("insert into options (\"pollid\", \"text\", \"vote\") values ("+ pollId +", '"+ newOption +"', 1)", (err, result) => {
+				if (err){
+					console.log("Error voting new option: " + err);
+				} else {
+					res.redirect("/poll/"+pollId);
+				}
+			});
+		} else {
+			res.redirect("/poll/"+pollId);
+		}
     });
 
 	app.post("/poll/delete/:poll([0-9])", checkAuth, function (req, res, next) {
@@ -293,13 +307,9 @@ module.exports = function (express, app, path, bcrypt, dbClient) {
 		});
 	});
 
-	app.post("/option/create/:poll([0-9])", checkAuth, function (req, res, next) {
-    	// add option to existing poll
-    });
-
    	app.get("*", function(req, res){
    		res.status(404).send("Can not find the page");
     });
 }
 
-// TODO: add option -> show results -> static files -> styles and graphs
+// TODO: show results -> static files -> styles and graphs
