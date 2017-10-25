@@ -50,13 +50,18 @@
 
     var myPieChart = new Chart(ctx, {
         type: 'pie',
-        labels: labels.split(","),
         data: {
+            labels: labels.split(","),
             datasets: [{
                 data: votes.split(","),
-                backgroundColor : ["#8e9eea", "#fed270", "#d2c3cf", "#da7858", "#a3748d"],
+                backgroundColor : ["#737374", "#929f59", "#e6c1d3", "#5DA452", "#a45286", "#be5273", "#52A499"],
             }]
         },
+        options: {
+            responsive: false,
+            maintainAspectRatio: true,
+        }
    });
+
 </script>
 <% include partial/footer %>

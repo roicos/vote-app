@@ -1,19 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
-    <link rel="stylesheet" type="text/css" href="/css/main.css">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/less" href="/css/main.less">
+
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/less.js/2.7.2/less.min.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.0/Chart.min.js"></script>
 </head>
-<body class="container">
-<div class="header">
-    Header
-    <a href="/">Main page</a>
-    <%if (locals.user != undefined) { %>
-        <a href="/logout">logout here</a>
-        <a href="/polls">Your polls</a>
-    <% } else { %>
-        <a href="/login">login</a>
-    <% } %>
+<body>
+<div id="header" class="container">
+    <ul class="nav nav-left">
+        <li><a href="/">Home</a></li>
+        <%if (locals.user != undefined) { %>
+            <li><a href="/polls">Your polls</a></li>
+        <% } %>
+    </ul>
+    <ul class="nav nav-right">
+        <%if (locals.user != undefined) { %>
+            <li><a href="/logout">Logout </a></li>
+        <% } else { %>
+            <li><a href="/login">Login</a></li>
+        <% } %>
+
+    </ul>
 </div>
-<div class="container">
+<div id="main" class="container">
