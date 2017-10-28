@@ -1,24 +1,30 @@
 <% include partial/header %>
-    <h2><%= message %></h2>
 
-    <table>
+<div class="jumbotron">
+
+    <h2 class="text-center"><%= message %></h2>
+
+    <table class="table table-striped table-bordered controls-contained">
     <% for(var i=0; i<polls.length; i++) {%>
     <tr><td><a href='poll/<%= polls[i].id %>'><%= polls[i].id %></a></td>
         <td><a href='poll/<%= polls[i].id %>'><%= polls[i].question %></a></td>
         <td> <%if (polls[i].status == 0) { %>
             <form action='poll/publish/<%=polls[i].id%>' method="post">
-                <input type="submit" value="publish"/>
+                <input type="submit" value="publish" class="btn btn-default"/>
             </form>
             <% } %>
         </td>
         <td>
             <form action='poll/delete/<%=polls[i].id%>' method="post">
-                 <input type="submit" value="delete"/>
+                 <input type="submit" value="delete" class="btn btn-default"/>
             </form>
         </td>
     </tr>
     <% } %>
     </table>
 
-    <a href="/poll/create">Create new</a>
+    <a href="/poll/create" class="btn btn-default">Create new</a>
+
+</div>
+
 <% include partial/footer %>

@@ -5,12 +5,15 @@
 
 @grey: #737374;
 @paleGrey: #cbcacc;
+@black: #000;
+@white: #FFF;
 @paleGreen: #929f59;
 @paleViolet: #e6c1d3;
-@green: #5DA452;
+@green: #656e3e;
 @violet: #a45286;
 @rose: #be5273;
 @blue: #52A499;
+@red: #CE2759;
 
 
 html, body{
@@ -20,24 +23,6 @@ html, body{
     margin: 0;
 }
 
-#main {
-	margin-top: 40px;
-}
-
-#main a{
-	color: @violet;
-	font-weight: bold;
-}
-
-#main a:hover, a:active, a:focus{
-	color: @rose;
-	text-decoration: none;
-}
-
-#main .jumbotron p {
-    font-size: 16px;
-    font-weight: normal;
-}
 
 #header{
     background-color: @grey;
@@ -79,13 +64,90 @@ html, body{
 	right: 100px;
 }
 
+
+#main {
+	margin-top: 40px;
+	color: @grey;
+	min-height: ~"calc(100% - 160px)"; /* 100% - header - footer */
+}
+
+#content{
+	padding-bottom: 60px;  /* height of footer together with paddings */
+}
+
+#main a{
+	color: @violet;
+	font-weight: bold;
+}
+
+#main a:hover, a:active, a:focus{
+	color: @rose;
+	text-decoration: none;
+}
+
+#main .jumbotron{
+	background-color: @white;
+	border-radius: 0;
+	border: 1px solid @paleGrey;
+	-webkit-box-shadow: 3px 3px 2px 0px rgba(115, 115, 116, 0.5);
+    -moz-box-shadow:    3px 3px 2px 0px rgba(115, 115, 116, 0.5);
+    box-shadow:         3px 3px 2px 0px rgba(115, 115, 116, 0.5);
+}
+
+#main .jumbotron h2{
+	color: @green;
+	margin-bottom: 40px;
+}
+
+#main .jumbotron p {
+    font-size: 16px;
+    font-weight: normal;
+}
+
+#main .jumbotron p.question{
+	font-size: 21px;
+}
+
+#main .jumbotron .btn-default{
+	color: @green;
+	font-weight: bold;
+}
+
+#main .jumbotron table.controls-contained>tbody>tr>td {
+    border: none;
+    border-top: 1px solid #ddd;
+}
+
+#main .jumbotron #options{
+	list-style: none;
+	padding: 0;
+}
+
+#main .jumbotron.poll #options{
+	font-size: 18px;
+	color: @black;
+	margin-left: 60px;
+}
+
+#main .jumbotron.poll .radio input[type=radio]{
+	margin-top: 7px;
+}
+
+#main .jumbotron.poll #controls{
+	margin-top: 20px;
+}
+
+#main .jumbotron #options>li{
+	padding: 2px 0;
+}
+
+
+
 #footer{
-	position: absolute;
-    bottom: 0;
     background-color: @grey;
     width: 100%;
     color: @paleViolet;
-    margin: 0;
+    margin: -40px 0 0 0; /* height + padding-top */
     padding: 20px;
 }
 

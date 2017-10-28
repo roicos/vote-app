@@ -15,16 +15,16 @@
     <ul class="nav nav-left">
         <li><a href="/">Home</a></li>
         <%if (locals.user != undefined) { %>
-            <li><a href="/polls">Your polls</a></li>
+        <li><a href="/polls">Your polls</a></li>
         <% } %>
     </ul>
     <ul class="nav nav-right">
         <%if (locals.user != undefined) { %>
-            <li><a href="/logout">Logout </a></li>
+        <li><a href="/logout">Logout </a></li>
         <% } else { %>
-            <li><a href="/login">Login</a></li>
+        <li><a href="/login">Login</a></li>
         <% } %>
-
     </ul>
 </div>
 <div id="main" class="container">
+    <div id="content">

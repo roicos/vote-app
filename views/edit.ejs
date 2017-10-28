@@ -1,23 +1,45 @@
 <% include partial/header %>
-<form method="post" action="/poll/edit/">
-    <label>Question: </label>
-    <textarea name="question" rows="4" cols="50"><%=(poll != null ? poll.question : "")%></textarea>
-    <% if (poll != null ){%>
-        <input type="hidden" name="pollId" value="<%=poll.id%>">
+
+<div class="jumbotron">
+<h2 class="text-center"><% if (poll != null ){%>
+        Edit poll №<%=poll.id%>
+    <%} else {%>
+        New poll
     <%}%>
-    <ul id="options">Options:
-        <% if (poll == null ){%>
-            <li><input type="text" name="option-1"/></li>
-            <li><input type="text" name="option-2"/></li>
-        <%} else {%>
-            <% for(var i=0; i<poll.options.length; i++) {%>
-                <li><input type="text" name="option-<%=i+1%>" value="<%=poll.options[i].text%>"/></li>
-            <% } %>
+</h2>
+    <form method="post" action="/poll/edit/" class="form-horizontal">
+        <div class="form-group">
+            <label class="control-label col-sm-2" for="question">Question:</label>
+            <div class="col-sm-10">
+                <textarea name="question" class="form-control" rows="5" cols="100"><%=(poll != null ? poll.question : "")%></textarea>
+            </div>
+        </div>
+        <% if (poll != null ){%>
+            <input type="hidden" name="pollId" value="<%=poll.id%>"/>
         <%}%>
-    </ul>
-    <button id="addOptionField" onclick="return false;">Add option</button>
-    <input type="submit" value="submit"/>
-</form>
+        <div class="form-group">
+            <label class="control-label col-sm-2" for="options">Options:</label>
+            <div class="col-sm-10">
+                <ul id="options">
+                    <% if (poll == null ){%>
+                        <li><input type="text" name="option-1" class="form-control"/></li>
+                        <li><input type="text" name="option-2" class="form-control"></li>
+                    <%} else {%>
+                        <% for(var i=0; i<poll.options.length; i++) {%>
+                            <li><input type="text" name="option-<%=i+1%>" value="<%=poll.options[i].text%>" class="form-control"/></li>
+                        <% } %>
+                    <%}%>
+                </ul>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-10 text-left">
+                <button class="btn btn-default" id="addOptionField" onclick="return false;">Add option</button>
+                <input class="btn btn-default" type="submit" value="Submit"/>
+            </div>
+        </div>
+    </form>
+</div>
 <script>
     var addOptionButton = document.getElementById("addOptionField");
     addOptionButton.addEventListener("click", addOptionField);
@@ -29,6 +51,7 @@
         var option = document.createElement("input");
         option.type = "text";
         option.name = "option-"+nextNumber;
+        option.className = "form-control";
         li.appendChild(option);
         list.appendChild(li);
     }

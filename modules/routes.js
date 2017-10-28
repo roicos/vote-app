@@ -1,5 +1,3 @@
-// TODO: make all the data safe before insert or update
-
 module.exports = function (express, app, path, bcrypt, dbClient) {
 
 	app.use(express.static(path.join(__dirname, "../public")));
@@ -138,7 +136,7 @@ module.exports = function (express, app, path, bcrypt, dbClient) {
 
     app.get("/poll/:poll([0-9]+)", function (req, res, next) {
     	var id = req.params.poll;
-    	dbClient.query("select * from polls left join options on polls.id = options.pollId where polls.id = " + id, (err, result) => {
+    	dbClient.query("select * from polls left join options on polls.id = options.pollId where polls.id = " + id + " order by options.id", (err, result) => {
 			if (err){
 				console.log("Error find poll: " + err);
 			} else {
@@ -241,7 +239,7 @@ module.exports = function (express, app, path, bcrypt, dbClient) {
 					console.log("Error update poll: " + errUpdatePoll);
 				} else {
 					// delete old options
-					dbClient.query("delete from options where id = (select id from options where pollid = "+ pollId +")", (errDeleteOptions, resultDeleteOption) => {
+					dbClient.query("delete from options where id in (select id from options where pollid = "+ pollId +")", (errDeleteOptions, resultDeleteOption) => {
 						if (errDeleteOptions){
 							console.log("Error delete options: " + errDeleteOptions);
 						} else {

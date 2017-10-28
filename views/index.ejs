@@ -1,11 +1,15 @@
 <% include partial/header %>
-<h2>New polls require your vote:</h2>
-<table>
-<% for(var i=0; i<polls.length; i++) {%>
-<tr>
-    <td><a href='poll/<%= polls[i].id %>'><%= polls[i].id %></a></td>
-    <td><a href='poll/<%= polls[i].id %>'><%= polls[i].question %></a></td>
-</tr>
-<% } %>
-</table>
+
+<div class="jumbotron">
+    <h2 class="text-center">New polls require your vote:</h2>
+    <table class="table table-striped table-bordered">
+    <% for(var i=0; i<polls.length; i++) {%>
+    <tr>
+        <td><a href='poll/<%= polls[i].id %>'><%= polls[i].id %></a></td>
+        <td><a href='poll/<%= polls[i].id %>'><%= polls[i].question %></a></td>
+    </tr>
+    <% } %>
+    </table>
+</div>
+
 <% include partial/footer %>
