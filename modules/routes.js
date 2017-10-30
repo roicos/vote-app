@@ -161,7 +161,7 @@ module.exports = function (express, app, path, bcrypt, dbClient) {
         res.render("edit", {"poll" : null});
     });
 
-	app.get("/poll/edit/:poll([0-9])", checkAuth, function (req, res, next) {
+	app.get("/poll/edit/:poll([0-9]+)", checkAuth, function (req, res, next) {
 		// TODO: checkAuth doesn't work
 		var id = req.params.poll;
 		dbClient.query("select * from polls left join options on polls.id = options.pollId where polls.id = " + id, (err, result) => {
@@ -264,7 +264,7 @@ module.exports = function (express, app, path, bcrypt, dbClient) {
 		}
 	});
 
-	app.post("/poll/publish/:poll([0-9])", checkAuth, function (req, res, next) {
+	app.post("/poll/publish/:poll([0-9]+)", checkAuth, function (req, res, next) {
 		var id = req.params.poll;
 		var userId = req.session.user;
     	dbClient.query("update polls set status = true, published = now() where id = " + id + " and userid = " + userId, (err, result) => {
@@ -276,7 +276,7 @@ module.exports = function (express, app, path, bcrypt, dbClient) {
 		});
     });
 
-    app.post("/poll/vote/:poll([0-9])", function (req, res, next) {
+    app.post("/poll/vote/:poll([0-9]+)", function (req, res, next) {
     	var pollId = req.params.poll;
 		var option = req.body.option;
 		var newOption = req.body.newOption;
@@ -302,7 +302,7 @@ module.exports = function (express, app, path, bcrypt, dbClient) {
 		}
     });
 
-	app.post("/poll/delete/:poll([0-9])", checkAuth, function (req, res, next) {
+	app.post("/poll/delete/:poll([0-9]+)", checkAuth, function (req, res, next) {
 		var pollId = req.params.poll;
 		dbClient.query("delete from options where pollid = " + pollId, (errDeleteOptions, resultDeleteOptions) => {
 			if (errDeleteOptions){

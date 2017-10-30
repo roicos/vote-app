@@ -32,6 +32,8 @@ const dbClient = new Client({
   host: "ec2-50-17-203-195.compute-1.amazonaws.com",
   ssl: true
 
+  // local
+
   /*user: "postgres",
   password: "postgres",
   database: "voteAppDB",
